@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parallax</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#08080c;color:#e0e0e0;overflow-x:hidden}
+.viewport{position:absolute;top:0;left:0;right:0;bottom:0;display:none;cursor:default;background:#000}
+.viewport.active{display:block}
+.viewport canvas{width:100%;height:100%;display:block}
+.logo-container{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;display:flex;flex-direction:column;align-items:center}
+.logo{position:relative;z-index:2}
+.logo-wrapper{position:relative}
+.logo-shadow{position:absolute;top:0;left:0;z-index:1;filter:brightness(0) blur(8px);opacity:0.35;transform:translateY(120%) scaleY(0.3) scaleX(1.05)}
+
+/* Hero section */
+.hero{height:100vh;position:relative;overflow:hidden}
+
+/* Synopsis section */
+.synopsis{min-height:100vh;background:#FAF4DC;display:flex;align-items:center;justify-content:center;padding:80px 20px}
+.synopsis-content{max-width:1200px;display:flex;flex-direction:row;align-items:center;gap:80px}
+@media(max-width:900px){.synopsis-content{flex-direction:column;gap:40px}}
+.synopsis-text{flex:1}
+.synopsis-text h2{font-size:clamp(2rem,5vw,3.5rem);font-weight:400;color:#1a1a1a;margin-bottom:24px;letter-spacing:0.02em}
+.synopsis-text .logline{font-size:clamp(1.1rem,2vw,1.4rem);color:#333;font-style:italic;margin-bottom:40px;line-height:1.6}
+.synopsis-text p{font-size:1.1rem;color:#444;line-height:1.8;margin-bottom:20px}
+
+/* 3D Book */
+.book-container{flex:1;display:flex;justify-content:center;align-items:center;perspective:1200px;min-height:500px}
+.book{width:280px;height:400px;position:relative;transform-style:preserve-3d;animation:book-hover 3s ease-in-out infinite}
+@keyframes book-hover{0%,100%{transform:rotateY(-15deg) rotateX(5deg) translateY(0)}50%{transform:rotateY(-12deg) rotateX(3deg) translateY(-10px)}}
+.book-cover{position:absolute;width:100%;height:100%;backface-visibility:visible;border-radius:0 8px 8px 0;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.5)}
+.book-cover img{width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.book-spine{position:absolute;width:40px;height:100%;left:-40px;background:linear-gradient(to right,#1a1a1a,#2a2a2a);transform:rotateY(-90deg);transform-origin:right center;border-radius:8px 0 0 8px}
+.book-back{position:absolute;width:100%;height:100%;background:#1a1a1a;transform:translateZ(-40px);border-radius:8px 0 0 8px}
+.book-pages{position:absolute;width:38px;height:96%;top:2%;right:0;background:linear-gradient(to right,#f5f5f0,#e8e8e3,#f5f5f0,#e8e8e3,#f5f5f0);transform:translateX(0) translateZ(-20px);border-radius:0 2px 2px 0}
+
+/* Scroll indicator */
+.scroll-hint{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);color:#FAF4DC;font-size:28px;letter-spacing:0.1em;animation:bounce 2s infinite}
+
+/* Play button */
+.play-btn{display:flex;flex-direction:column;align-items:center;gap:16px;cursor:pointer;transition:transform 0.2s}
+.play-btn:hover{transform:scale(1.05)}
+.play-circle{width:80px;height:80px;border:2px solid #1a1a1a;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.play-circle:hover{background:rgba(0,0,0,0.05)}
+.play-circle svg{width:24px;height:24px;margin-left:4px}
+.play-text{font-size:12px;letter-spacing:0.2em;color:#1a1a1a}
+.hero-play{margin-top:40px;pointer-events:auto;position:relative;z-index:3}
+.hero-play .play-circle{border-color:#fff;background:#fff}
+.hero-play .play-circle svg{fill:#000}
+.hero-play .play-text{color:#fff}
+.hero-play .play-circle:hover{background:#eee}
+.scroll-arrow{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);animation:arrow-bounce 2s infinite}
+@keyframes arrow-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(10px)}}
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="viewport" id="viewport"><canvas id="glCanvas"></canvas></div>
+  <div class="logo-container" id="logoContainer">
+    <div class="logo-wrapper">
+      <img src="alandremeberedlogo_temp.svg" class="logo-shadow" alt="">
+      <img src="alandremeberedlogo_temp.svg" class="logo" id="logo" alt="">
+    </div>
+    <div class="play-btn hero-play">
+      <div class="play-circle">
+        <svg viewBox="0 0 24 24" fill="#000"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <span class="play-text">WATCH TRAILER</span>
+    </div>
+  </div>
+  <svg class="scroll-arrow" width="24" height="14" viewBox="0 0 24 14" fill="none"><path d="M2 2L12 12L22 2" stroke="#FAF4DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</section>
+
+<section class="synopsis">
+  <div class="synopsis-content">
+    <div class="synopsis-text">
+      <h2>The Story</h2>
+      <p class="logline">In a land where memories bloom like wildflowers, one woman must choose between the past she cherishes and the future she fears.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+      <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </div>
+    <div class="book-container">
+      <div class="book" id="book">
+        <div class="book-back"></div>
+        <div class="book-pages"></div>
+        <div class="book-spine"></div>
+        <div class="book-cover">
+          <img src="novel cover.jpg" alt="Novel Cover">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+// ══════════════ WebGL Shaders ══════════════
+const VERT = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+void main(){
+  gl_Position=vec4(a_position,0.0,1.0);
+  v_texCoord=a_texCoord;
+}`;
+
+const FRAG = `
+precision highp float;
+varying vec2 v_texCoord;
+uniform sampler2D u_image;
+uniform sampler2D u_depthMap;
+uniform sampler2D u_background;
+uniform vec2 u_mouse;
+uniform float u_intensity;
+uniform float u_zoom;
+
+const int NUM_LAYERS = 5;
+
+void main(){
+  // Start with the separate background image (static, no movement)
+  vec2 baseUV = (v_texCoord - 0.5) / u_zoom + 0.5;
+  vec4 color = texture2D(u_background, clamp(baseUV, 0.0, 1.0));
+
+  // Composite layers from back (i=0) to front (i=NUM_LAYERS-1)
+  for(int i = 0; i < NUM_LAYERS; i++) {
+    float iLayer = float(i);
+    float iDepth = iLayer / float(NUM_LAYERS - 1);
+
+    // Calculate offset for this layer - closer layers move more
+    vec2 offset = u_mouse * u_intensity * iDepth * vec2(1.0, 0.6);
+    vec2 sampleUV = (v_texCoord - 0.5) / u_zoom + 0.5 - offset;
+
+    // Clamp to valid texture coords
+    vec2 clampedUV = clamp(sampleUV, 0.0, 1.0);
+
+    // Sample depth and color at this layer's position
+    float depthAtSample = texture2D(u_depthMap, clampedUV).r;
+    float layerAtSample = floor(depthAtSample * float(NUM_LAYERS - 1) + 0.5);
+
+    // If this sampled pixel belongs to this layer (or closer), draw it
+    if(layerAtSample >= iLayer - 0.5) {
+      vec4 layerColor = texture2D(u_image, clampedUV);
+      color = layerColor;
+    }
+  }
+
+  gl_FragColor = color;
+}`;
+// ══════════════ State ══════════════
+let gl,program,imageTexture,depthTexture,backgroundTexture;
+let mouseX=0,mouseY=0,smoothX=0,smoothY=0;
+let animId=null,currentImg=null,backgroundImg=null;
+let uMouse,uIntensity,uZoom;
+
+const viewport=document.getElementById('viewport');
+// ══════════════ WebGL Helpers ══════════════
+function makeShader(type,src){
+  const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(s));return null}return s;
+}
+function makeProgram(vs,fs){
+  const p=gl.createProgram();gl.attachShader(p,vs);gl.attachShader(p,fs);gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(p));return null}return p;
+}
+function makeTexture(source){
+  const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);return t;
+}
+// ══════════════ Depth Map ══════════════
+let precomputedDepthImg = null;
+// ══════════════ Init WebGL ══════════════
+function initWebGL(img){
+  const canvas=document.getElementById('glCanvas');
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=window.innerWidth*dpr;canvas.height=window.innerHeight*dpr;
+  gl=canvas.getContext('webgl',{antialias:false,alpha:false});
+  if(!gl){alert('WebGL not available');return}
+  const vs=makeShader(gl.VERTEX_SHADER,VERT);
+  const fs=makeShader(gl.FRAGMENT_SHADER,FRAG);
+  program=makeProgram(vs,fs);gl.useProgram(program);
+
+  const quad=new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,quad,gl.STATIC_DRAW);
+  const aPos=gl.getAttribLocation(program,'a_position');gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+
+  const uvs=new Float32Array([0,1,1,1,0,0,0,0,1,1,1,0]);
+  const uvBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,uvBuf);gl.bufferData(gl.ARRAY_BUFFER,uvs,gl.STATIC_DRAW);
+  const aTex=gl.getAttribLocation(program,'a_texCoord');gl.enableVertexAttribArray(aTex);gl.vertexAttribPointer(aTex,2,gl.FLOAT,false,0,0);
+
+  imageTexture=makeTexture(img);
+  gl.uniform1i(gl.getUniformLocation(program,'u_image'),0);
+  depthTexture=makeTexture(precomputedDepthImg);
+  gl.uniform1i(gl.getUniformLocation(program,'u_depthMap'),1);
+  // Use separate background image if available, otherwise use main image
+  backgroundTexture=makeTexture(backgroundImg||img);
+  gl.uniform1i(gl.getUniformLocation(program,'u_background'),2);
+  uMouse=gl.getUniformLocation(program,'u_mouse');
+  uIntensity=gl.getUniformLocation(program,'u_intensity');
+  uZoom=gl.getUniformLocation(program,'u_zoom');
+  viewport.classList.add('active');
+  gl.viewport(0,0,canvas.width,canvas.height);
+  window.onresize=()=>{const d=window.devicePixelRatio||1;canvas.width=window.innerWidth*d;canvas.height=window.innerHeight*d;gl.viewport(0,0,canvas.width,canvas.height)};
+  if(animId)cancelAnimationFrame(animId);
+  renderLoop();
+}
+
+// ══════════════ Render Loop ══════════════
+const SMOOTHING = 0.02; // Max smoothing (slowest, smoothest)
+const logoContainer = document.getElementById('logoContainer');
+const logoShadow = document.querySelector('.logo-shadow');
+
+function renderLoop(){
+  smoothX+=(mouseX-smoothX)*SMOOTHING;smoothY+=(mouseY-smoothY)*SMOOTHING;
+  const intensity=0.025; // Multi-layer parallax intensity
+  gl.uniform2f(uMouse,smoothX,smoothY);
+  gl.uniform1f(uIntensity,intensity);
+  gl.uniform1f(uZoom,1.1);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,imageTexture);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,depthTexture);
+  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,backgroundTexture);
+  gl.drawArrays(gl.TRIANGLES,0,6);
+
+  // Logo parallax - moves slightly with mouse (like a mid-layer)
+  const logoOffsetX = smoothX * 15;
+  const logoOffsetY = smoothY * 10;
+  logoContainer.style.transform = `translate(calc(-50% + ${logoOffsetX}px), calc(-50% + ${logoOffsetY}px))`;
+
+  // Shadow parallax - moves opposite/more to simulate light source shift
+  const shadowOffsetX = smoothX * 25;
+  const shadowOffsetY = 60 + smoothY * 5;
+  logoShadow.style.transform = `translateX(${shadowOffsetX}px) translateY(${shadowOffsetY}%) scaleY(0.3) scaleX(1.05)`;
+
+  animId=requestAnimationFrame(renderLoop);
+}
+// ══════════════ Input: Mouse (desktop) / Gyroscope (mobile) ══════════════
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+if(isMobile){
+  // Mobile: use gyroscope
+  if(window.DeviceOrientationEvent){
+    // iOS 13+ requires permission
+    if(typeof DeviceOrientationEvent.requestPermission === 'function'){
+      document.body.addEventListener('click',()=>{
+        DeviceOrientationEvent.requestPermission().then(response=>{
+          if(response==='granted'){
+            window.addEventListener('deviceorientation',handleOrientation);
+          }
+        });
+      },{once:true});
+    }else{
+      window.addEventListener('deviceorientation',handleOrientation);
+    }
+  }
+}else{
+  // Desktop: use mouse hover
+  document.addEventListener('mousemove',e=>{
+    mouseX=(e.clientX/window.innerWidth-.5)*2;
+    mouseY=(e.clientY/window.innerHeight-.5)*2;
+  });
+}
+
+function handleOrientation(e){
+  if(e.gamma!==null&&e.beta!==null){
+    mouseX=Math.max(-1,Math.min(1,e.gamma/30));
+    mouseY=Math.max(-1,Math.min(1,(e.beta-45)/30));
+  }
+}
+
+// ══════════════ Auto-load bundled image + ML depth + background ══════════════
+Promise.all([
+  fetch('landscape.png').then(r=>r.ok?r.blob():Promise.reject()),
+  fetch('landscape_depth.png').then(r=>r.ok?r.blob():null).catch(()=>null),
+  fetch('backgroundlayer.png').then(r=>r.ok?r.blob():null).catch(()=>null)
+]).then(([imgBlob,depthBlob,bgBlob])=>{
+  const img=new Image();
+  img.onload=()=>{
+    currentImg=img;
+
+    // Load background image if available
+    const loadBg = bgBlob ? new Promise(resolve=>{
+      const bgImg=new Image();
+      bgImg.onload=()=>{backgroundImg=bgImg;console.log('✓ Using separate background layer');resolve()};
+      bgImg.onerror=()=>resolve();
+      bgImg.src=URL.createObjectURL(bgBlob);
+    }) : Promise.resolve();
+
+    // Load depth map if available
+    const loadDepth = depthBlob ? new Promise(resolve=>{
+      const depthImg=new Image();
+      depthImg.onload=()=>{precomputedDepthImg=depthImg;console.log('✓ Using ML depth map');resolve()};
+      depthImg.onerror=()=>{console.log('⚠ Using fallback algorithmic depth');resolve()};
+      depthImg.src=URL.createObjectURL(depthBlob);
+    }) : Promise.resolve().then(()=>console.log('⚠ Using fallback algorithmic depth'));
+
+    Promise.all([loadBg,loadDepth]).then(()=>initWebGL(img));
+  };
+  img.src=URL.createObjectURL(imgBlob);
+}).catch(()=>{console.log('No bundled image found');});
+
+
+</script>
+</body>
+</html>
