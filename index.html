@@ -286,11 +286,11 @@ void main(){
       vec2 shadowOffset = u_mouse * 0.04; // Shadow shifts with parallax
 
       // Perspective elongation - shadow gets longer/stretched toward bottom
-      float perspectiveStretch = 1.0 + (v_texCoord.y - 0.5) * 0.5;
+      float perspectiveStretch = 1.0 + (coverUV.y - 0.5) * 0.5;
       vec2 shadowScale = vec2(0.75, 0.1 * perspectiveStretch); // Bigger
 
-      // Transform UV to logo shadow space
-      vec2 logoUV = (v_texCoord - shadowCenter - shadowOffset) / shadowScale + 0.5;
+      // Transform UV to logo shadow space (use coverUV for aspect-correct positioning)
+      vec2 logoUV = (coverUV - shadowCenter - shadowOffset) / shadowScale + 0.5;
 
       // Light blur by sampling a few offset points
       float shadowAlpha = 0.0;
