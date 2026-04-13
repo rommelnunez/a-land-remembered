@@ -236,13 +236,25 @@ uniform float u_intensity;
 uniform float u_zoom;
 uniform vec2 u_logoSize;
 uniform vec2 u_resolution;
+uniform vec2 u_imageSize;
 
 const int NUM_LAYERS = 5;
 const float SHADOW_LAYER = 0.6; // Which depth layer shadow appears on (0=far, 1=near)
 
 void main(){
+  // Aspect ratio correction for cover behavior
+  float screenAspect = u_resolution.x / u_resolution.y;
+  float imageAspect = u_imageSize.x / u_imageSize.y;
+  vec2 scale = vec2(1.0);
+  if (screenAspect > imageAspect) {
+    scale.y = imageAspect / screenAspect;
+  } else {
+    scale.x = screenAspect / imageAspect;
+  }
+  vec2 coverUV = (v_texCoord - 0.5) * scale + 0.5;
+
   // Start with the separate background image (static, no movement)
-  vec2 baseUV = (v_texCoord - 0.5) / u_zoom + 0.5;
+  vec2 baseUV = (coverUV - 0.5) / u_zoom + 0.5;
   vec4 color = texture2D(u_background, clamp(baseUV, 0.0, 1.0));
 
   // Composite layers from back (i=0) to front (i=NUM_LAYERS-1)
@@ -252,7 +264,7 @@ void main(){
 
     // Calculate offset for this layer - closer layers move more
     vec2 offset = u_mouse * u_intensity * iDepth * vec2(1.0, 0.6);
-    vec2 sampleUV = (v_texCoord - 0.5) / u_zoom + 0.5 - offset;
+    vec2 sampleUV = (coverUV - 0.5) / u_zoom + 0.5 - offset;
 
     // Clamp to valid texture coords
     vec2 clampedUV = clamp(sampleUV, 0.0, 1.0);
@@ -360,9 +372,13 @@ function initWebGL(img){
   uMouse=gl.getUniformLocation(program,'u_mouse');
   uIntensity=gl.getUniformLocation(program,'u_intensity');
   uZoom=gl.getUniformLocation(program,'u_zoom');
+  const uResolution=gl.getUniformLocation(program,'u_resolution');
+  const uImageSize=gl.getUniformLocation(program,'u_imageSize');
+  gl.uniform2f(uImageSize,img.width,img.height);
+  gl.uniform2f(uResolution,canvas.width,canvas.height);
   viewport.classList.add('active');
   gl.viewport(0,0,canvas.width,canvas.height);
-  window.onresize=()=>{const d=window.devicePixelRatio||1;canvas.width=window.innerWidth*d;canvas.height=window.innerHeight*d;gl.viewport(0,0,canvas.width,canvas.height)};
+  window.onresize=()=>{const d=window.devicePixelRatio||1;canvas.width=window.innerWidth*d;canvas.height=window.innerHeight*d;gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(uResolution,canvas.width,canvas.height)};
   if(animId)cancelAnimationFrame(animId);
   renderLoop();
 }
