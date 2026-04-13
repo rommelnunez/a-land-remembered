@@ -105,6 +105,11 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
 .hero-play .play-circle svg{fill:#000}
 .hero-play .play-text{color:#fff}
 .hero-play .play-circle:hover{background:#eee}
+
+/* Motion enable button for mobile */
+.motion-btn{display:none;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:20;padding:12px 24px;background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:30px;color:#fff;font-family:inherit;font-size:12px;letter-spacing:0.1em;cursor:pointer;transition:background 0.2s}
+.motion-btn:hover{background:rgba(255,255,255,0.3)}
+@media(max-width:768px){.motion-btn{display:block}}
 .scroll-arrow{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);animation:arrow-bounce 2s infinite}
 @keyframes arrow-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(10px)}}
 
@@ -154,6 +159,7 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
     <p>Based on the novel by Patrick D. Smith</p>
     <p>Created for television by Todd Wiseman Jr. and Christa Boarini</p>
   </div>
+  <button class="motion-btn" id="motionBtn">ENABLE MOTION</button>
   <svg class="scroll-arrow" width="24" height="14" viewBox="0 0 24 14" fill="none"><path d="M2 2L12 12L22 2" stroke="#FAF4DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </section>
 
@@ -416,19 +422,25 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 if(isMobile){
   // Mobile: use gyroscope
+  const motionBtn = document.getElementById('motionBtn');
   if(window.DeviceOrientationEvent){
     // iOS 13+ requires permission
     if(typeof DeviceOrientationEvent.requestPermission === 'function'){
-      document.body.addEventListener('click',()=>{
+      motionBtn.addEventListener('click',()=>{
         DeviceOrientationEvent.requestPermission().then(response=>{
           if(response==='granted'){
             window.addEventListener('deviceorientation',handleOrientation);
+            motionBtn.style.display='none';
           }
         });
-      },{once:true});
+      });
     }else{
+      // Android or older iOS - try directly
       window.addEventListener('deviceorientation',handleOrientation);
+      motionBtn.style.display='none';
     }
+  }else{
+    motionBtn.style.display='none';
   }
 }else{
   // Desktop: use mouse hover
