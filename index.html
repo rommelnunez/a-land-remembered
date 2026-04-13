@@ -290,7 +290,7 @@ void main(){
 
       // Perspective elongation - shadow gets longer/stretched toward bottom
       float perspectiveStretch = 1.0 + (coverUV.y - 0.5) * 0.5;
-      vec2 shadowScale = vec2(0.75, 0.1 * perspectiveStretch) * mobileScale;
+      vec2 shadowScale = vec2(0.55, 0.08 * perspectiveStretch) * mobileScale;
 
       // Transform UV to logo shadow space (use coverUV for aspect-correct positioning)
       vec2 logoUV = (coverUV - shadowCenter - shadowOffset) / shadowScale + 0.5;
