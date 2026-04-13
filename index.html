@@ -18,6 +18,24 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
 .logo-wrapper{position:relative}
 .logo-shadow{display:none} /* Shadow now rendered in WebGL */
 
+/* Nav bar */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;transition:background 0.3s}
+.navbar.scrolled{background:rgba(0,0,0,0.8);backdrop-filter:blur(10px)}
+.nav-logo{height:40px}
+.nav-links{display:flex;gap:30px}
+.nav-links a{color:#fff;text-decoration:none;font-size:14px;letter-spacing:0.1em;transition:color 0.2s}
+.nav-links a:hover{color:#8FEBAF}
+.burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:5px}
+.burger span{width:24px;height:2px;background:#fff;transition:transform 0.3s,opacity 0.3s}
+.burger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+@media(max-width:768px){
+  .nav-links{position:fixed;top:0;right:-100%;width:70%;height:100vh;background:rgba(0,0,0,0.95);flex-direction:column;justify-content:center;align-items:center;gap:40px;transition:right 0.3s}
+  .nav-links.open{right:0}
+  .burger{display:flex}
+}
+
 /* Hero section */
 .hero{height:100vh;position:relative;overflow:hidden}
 
@@ -94,6 +112,19 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
 </style>
 </head>
 <body>
+<nav class="navbar" id="navbar">
+  <img src="alandremeberedlogo_temp.svg" alt="A Land Remembered" class="nav-logo">
+  <div class="nav-links" id="navLinks">
+    <a href="#synopsis">STORY</a>
+    <a href="#press">PRESS</a>
+    <a href="#signup">SUBSCRIBE</a>
+  </div>
+  <div class="burger" id="burger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</nav>
 <section class="hero">
   <div class="viewport" id="viewport"><canvas id="glCanvas"></canvas></div>
   <div class="birds-video"><video id="birdsVideo" src="birds.mp4" autoplay loop muted playsinline></video><canvas id="birdsCanvas"></canvas></div>
@@ -117,7 +148,7 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
   <svg class="scroll-arrow" width="24" height="14" viewBox="0 0 24 14" fill="none"><path d="M2 2L12 12L22 2" stroke="#FAF4DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </section>
 
-<section class="synopsis">
+<section class="synopsis" id="synopsis">
   <div class="synopsis-content">
     <div class="synopsis-text">
       <h2>A Beloved Novel, Turned TV Series</h2>
@@ -141,7 +172,7 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
   </div>
 </section>
 
-<section class="press">
+<section class="press" id="press">
   <h2>PRESS</h2>
   <div class="press-grid">
     <a class="press-item" href="https://www.wusf.org/arts-culture/2025-10-21/a-land-remembered-series-florida-casting-call" target="_blank">
@@ -162,7 +193,7 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
   </div>
 </section>
 
-<section class="email-signup">
+<section class="email-signup" id="signup">
   <h3>Share your email to stay updated</h3>
   <form class="email-form">
     <input type="email" placeholder="Enter your email" required>
@@ -430,6 +461,27 @@ function processChromaKey() {
   birdsCtx.putImageData(frame, 0, 0);
   requestAnimationFrame(processChromaKey);
 }
+
+// ══════════════ Navbar ══════════════
+const navbar = document.getElementById('navbar');
+const burger = document.getElementById('burger');
+const navLinks = document.getElementById('navLinks');
+
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+burger.addEventListener('click', () => {
+  burger.classList.toggle('open');
+  navLinks.classList.toggle('open');
+});
+
+navLinks.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    burger.classList.remove('open');
+    navLinks.classList.remove('open');
+  });
+});
 
 // ══════════════ Fireflies ══════════════
 const firefliesContainer = document.getElementById('fireflies');
