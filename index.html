@@ -229,6 +229,27 @@ body{font-family:'Baskerville','Libre Baskerville',Georgia,serif;background:#080
   <p>© GOLD FILMS</p>
 </footer>
 <script>
+// ══════════════ Feature flags ══════════════
+// Depth/parallax rendering stays on; MOTION_INPUT_ENABLED controls cursor/gyro.
+const PARALLAX_ENABLED = true;
+const MOTION_INPUT_ENABLED = false;
+const BIRDS_ENABLED = false;
+
+if (!MOTION_INPUT_ENABLED) {
+  const mb = document.getElementById('motionBtn');
+  if (mb) mb.style.display = 'none';
+}
+if (!PARALLAX_ENABLED) {
+  const vp = document.getElementById('viewport');
+  if (vp) vp.style.display = 'none';
+}
+if (!BIRDS_ENABLED) {
+  const bv = document.querySelector('.birds-video');
+  if (bv) bv.style.display = 'none';
+  const bvid = document.getElementById('birdsVideo');
+  if (bvid) { bvid.pause(); bvid.removeAttribute('autoplay'); bvid.removeAttribute('src'); bvid.load(); }
+}
+
 // ══════════════ WebGL Shaders ══════════════
 const VERT = `
 attribute vec2 a_position;
@@ -429,7 +450,7 @@ function renderLoop(){
 // ══════════════ Input: Mouse (desktop) / Gyroscope (mobile) ══════════════
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-if(isMobile){
+if(MOTION_INPUT_ENABLED && isMobile){
   // Mobile: use gyroscope
   const motionBtn = document.getElementById('motionBtn');
   if(window.DeviceOrientationEvent){
@@ -451,7 +472,7 @@ if(isMobile){
   }else{
     motionBtn.style.display='none';
   }
-}else{
+}else if(MOTION_INPUT_ENABLED){
   // Desktop: use mouse hover
   document.addEventListener('mousemove',e=>{
     mouseX=(e.clientX/window.innerWidth-.5)*2;
@@ -467,6 +488,7 @@ function handleOrientation(e){
 }
 
 // ══════════════ Chroma Key Birds Video ══════════════
+if (BIRDS_ENABLED) {
 const birdsVideo = document.getElementById('birdsVideo');
 const birdsCanvas = document.getElementById('birdsCanvas');
 const birdsCtx = birdsCanvas.getContext('2d', { willReadFrequently: true });
@@ -514,6 +536,7 @@ function processChromaKey() {
   birdsCtx.putImageData(frame, 0, 0);
   requestAnimationFrame(processChromaKey);
 }
+} // end BIRDS_ENABLED
 
 // ══════════════ Navbar ══════════════
 const navbar = document.getElementById('navbar');
@@ -554,7 +577,7 @@ for (let i = 0; i < NUM_FIREFLIES; i++) {
 }
 
 // ══════════════ Auto-load bundled image + ML depth + background ══════════════
-Promise.all([
+if (PARALLAX_ENABLED) Promise.all([
   fetch('landscape.png').then(r=>r.ok?r.blob():Promise.reject()),
   fetch('landscape_depth.png').then(r=>r.ok?r.blob():null).catch(()=>null),
   fetch('backgroundlayer.png').then(r=>r.ok?r.blob():null).catch(()=>null),
